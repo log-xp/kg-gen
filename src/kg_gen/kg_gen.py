@@ -32,14 +32,16 @@ class KGGen:
         api_key: str = None,
         api_base: str = None,
         retrieval_model: Optional[str] = None,
+        aicore_client: Optional[object] = None,
     ):
         """Initialize KGGen with optional model configuration
 
         Args:
-            model: Name of model to use (e.g. 'gpt-4')
+            model: Name of model to use (e.g. 'gpt-4' or 'anthropic--claude-4-sonnet' for AI Core)
             temperature: Temperature for model sampling
             api_key: API key for model access
             api_base: Specify the base URL endpoint for making API calls to a language model service
+            aicore_client: SAP AI Core client from gen_ai_hub.proxy (e.g., Session().client())
         """
         self.model = model
         self.reasoning_effort = reasoning_effort
@@ -49,6 +51,7 @@ class KGGen:
         self.api_base = api_base
         self.retrieval_model: Optional[SentenceTransformer] = None
         self.lm = None
+        self.aicore_client = aicore_client
 
         self.init_model(
             model=model,
@@ -58,6 +61,7 @@ class KGGen:
             api_key=api_key,
             api_base=api_base,
             retrieval_model=retrieval_model,
+            aicore_client=aicore_client,
         )
 
     def validate_reasoning_effort(self, reasoning_effort: str):
@@ -83,11 +87,12 @@ class KGGen:
         retrieval_model: str = None,
         api_key: str = None,
         api_base: str = None,
+        aicore_client: object = None,
     ):
         """Initialize or reinitialize the model with new parameters
 
         Args:
-            model: Name of model to use (e.g. 'gpt-4')
+            model: Name of model to use (e.g. 'gpt-4' or 'anthropic--claude-4-sonnet' for AI Core)
             temperature: Temperature for model sampling
             api_key: API key for model access
             api_base: API base for model access
@@ -95,6 +100,7 @@ class KGGen:
             reasoning_effort: Reasoning effort for model
             max_tokens: Maximum tokens for model
             temperature: Temperature for model sampling
+            aicore_client: SAP AI Core client from gen_ai_hub.proxy
         """
 
         # Update instance variables if new values provided
@@ -112,13 +118,24 @@ class KGGen:
             self.reasoning_effort = reasoning_effort
         if retrieval_model is not None:
             self.retrieval_model = SentenceTransformer(retrieval_model)
+        if aicore_client is not None:
+            self.aicore_client = aicore_client
 
         self.validate_temperature(self.temperature)
         self.validate_reasoning_effort(self.reasoning_effort)
         self.validate_max_tokens(self.max_tokens)
 
         # Initialize dspy LM with current settings
-        if self.api_key:
+        # If aicore_client is provided, use AICoreLM wrapper
+        if self.aicore_client is not None:
+            from .aicore_provider import AICoreLM
+            self.lm = AICoreLM(
+                client=self.aicore_client,
+                model_name=self.model,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+            )
+        elif self.api_key:
             self.lm = dspy.LM(
                 model=self.model,
                 api_key=self.api_key,
@@ -157,6 +174,7 @@ class KGGen:
         cluster: bool = False,
         temperature: float = None,
         output_folder: Optional[str] = None,
+        aicore_client: object = None,
     ) -> Graph:
         """Generate a knowledge graph from input text or messages.
 
@@ -195,12 +213,13 @@ class KGGen:
             processed_input = input_data
 
         # Reinitialize dspy with new parameters if any are provided
-        if any([model, temperature, api_key, api_base]):
+        if any([model, temperature, api_key, api_base, aicore_client]):
             self.init_model(
                 model=model or self.model,
                 temperature=temperature or self.temperature,
                 api_key=api_key or self.api_key,
                 api_base=api_base or self.api_base,
+                aicore_client=aicore_client or self.aicore_client,
             )
 
         def _process(content, lm):
@@ -268,14 +287,16 @@ class KGGen:
         temperature: float = None,
         api_key: str = None,
         api_base: str = None,
+        aicore_client: object = None,
     ) -> Graph:
         # Reinitialize dspy with new parameters if any are provided
-        if any([model, temperature, api_key, api_base]):
+        if any([model, temperature, api_key, api_base, aicore_client]):
             self.init_model(
                 model=model or self.model,
                 temperature=temperature or self.temperature,
                 api_key=api_key or self.api_key,
                 api_base=api_base or self.api_base,
+                aicore_client=aicore_client or self.aicore_client,
             )
 
         with dspy.context(lm=self.lm):

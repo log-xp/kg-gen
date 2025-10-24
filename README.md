@@ -29,6 +29,38 @@ Examples of models you can pass in:
 
 You may specify a custom API base url with `base_url` ([example here](https://github.com/stair-lab/kg-gen/tree/main/tests/test_custom_api_base.py)).
 
+### SAP AI Core Support
+
+`kg-gen` supports SAP AI Core's LLM proxy service via the `gen-ai-hub-sdk`. This allows you to use SAP AI Core instead of directly calling OpenAI or other providers.
+
+Install with AI Core support:
+```bash
+pip install 'kg-gen[aicore]'
+```
+
+Example usage:
+```python
+from gen_ai_hub.proxy.native.amazon.clients import Session
+from kg_gen import KGGen
+
+# Create SAP AI Core client
+bedrock = Session().client(model_name="anthropic--claude-4-sonnet")
+
+# Initialize KGGen with SAP AI Core
+kg = KGGen(
+    aicore_client=bedrock,
+    model="anthropic--claude-4-sonnet",
+    temperature=0.5,
+    max_tokens=512,
+)
+
+# Generate knowledge graph
+text = "Your text here..."
+graph = kg.generate(input_data=text)
+```
+
+See [examples/aicore_example.py](examples/aicore_example.py) for more details.
+
 ## Quick start
 
 Install the module:

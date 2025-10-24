@@ -59,7 +59,7 @@ text = "Your text here..."
 graph = kg.generate(input_data=text)
 ```
 
-See [examples/aicore_example.py](examples/aicore_example.py) for more details.
+See [examples/aicore_example.py](examples/aicore_example.py) for more examples and [docs/SAP_AI_CORE.md](docs/SAP_AI_CORE.md) for comprehensive documentation.
 
 ## Quick start
 

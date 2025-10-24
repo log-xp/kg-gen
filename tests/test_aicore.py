@@ -3,10 +3,13 @@ Test file demonstrating SAP AI Core integration with kg-gen.
 
 To use this test, you need to:
 1. Install the SAP AI Core SDK: pip install 'kg-gen[aicore]'
-2. Configure your SAP AI Core credentials
-3. Run the test
+   This will install the 'generative-ai-hub-sdk' package
+2. Configure your SAP AI Core credentials according to SAP documentation
+3. Run the test with: pytest tests/test_aicore.py -v
 
 Note: This test is skipped by default if gen_ai_hub is not installed.
+For more information on SAP AI Core setup, see:
+https://pypi.org/project/generative-ai-hub-sdk/
 """
 
 import pytest

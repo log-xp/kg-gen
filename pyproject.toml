@@ -40,6 +40,9 @@ mcp = [
     "fastmcp>=2.10.6",
     "mcp>=1.12.1",
 ]
+aicore = [
+    "generative-ai-hub-sdk>=1.0.0",
+]
 
 [project.scripts]
 kggen = "kg_gen.cli:main"

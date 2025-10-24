@@ -32,6 +32,7 @@ class KGGen:
         api_key: str = None,
         api_base: str = None,
         retrieval_model: Optional[str] = None,
+        custom_lm: Optional[dspy.LM] = None,
     ):
         """Initialize KGGen with optional model configuration
 
@@ -40,6 +41,9 @@ class KGGen:
             temperature: Temperature for model sampling
             api_key: API key for model access
             api_base: Specify the base URL endpoint for making API calls to a language model service
+            retrieval_model: Name of retrieval model for embeddings
+            custom_lm: Custom DSPy LM instance (e.g., SAPAICoreBedrockLM). If provided,
+                      this takes precedence over other model parameters.
         """
         self.model = model
         self.reasoning_effort = reasoning_effort
@@ -49,16 +53,24 @@ class KGGen:
         self.api_base = api_base
         self.retrieval_model: Optional[SentenceTransformer] = None
         self.lm = None
+        self.custom_lm = custom_lm
 
-        self.init_model(
-            model=model,
-            reasoning_effort=reasoning_effort,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            api_key=api_key,
-            api_base=api_base,
-            retrieval_model=retrieval_model,
-        )
+        if custom_lm is not None:
+            # Use custom LM directly
+            self.lm = custom_lm
+            if retrieval_model:
+                self.retrieval_model = SentenceTransformer(retrieval_model)
+        else:
+            # Initialize with standard model parameters
+            self.init_model(
+                model=model,
+                reasoning_effort=reasoning_effort,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                api_key=api_key,
+                api_base=api_base,
+                retrieval_model=retrieval_model,
+            )
 
     def validate_reasoning_effort(self, reasoning_effort: str):
         if "gpt-5" not in self.model and reasoning_effort is not None:
@@ -96,6 +108,12 @@ class KGGen:
             max_tokens: Maximum tokens for model
             temperature: Temperature for model sampling
         """
+
+        # Don't reinitialize if using custom LM
+        if self.custom_lm is not None:
+            if retrieval_model is not None:
+                self.retrieval_model = SentenceTransformer(retrieval_model)
+            return
 
         # Update instance variables if new values provided
         if model is not None:

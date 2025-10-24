@@ -29,6 +29,36 @@ Examples of models you can pass in:
 
 You may specify a custom API base url with `base_url` ([example here](https://github.com/stair-lab/kg-gen/tree/main/tests/test_custom_api_base.py)).
 
+### Using SAP AI Core with Amazon Bedrock
+
+`kg-gen` supports SAP AI Core's Bedrock integration through a custom LM wrapper. This allows you to use enterprise-grade AI infrastructure with SAP's AI services.
+
+```python
+from kg_gen import KGGen, SAPAICoreBedrockLM
+
+# Create SAP AI Core Bedrock LM
+sap_lm = SAPAICoreBedrockLM(
+    model_name="anthropic--claude-4-sonnet",  # SAP AI Core model identifier
+    max_tokens=4096,
+    temperature=0.5,
+    top_p=0.9
+)
+
+# Use with KGGen
+kg = KGGen(custom_lm=sap_lm)
+graph = kg.generate(
+    input_data="Your text here...",
+    context="Optional context"
+)
+```
+
+**Requirements:**
+- SAP AI Core account with Bedrock access configured
+- Install the SDK: `pip install generative-ai-hub-sdk`
+- SAP AI Core credentials (handled automatically by the gen_ai_hub SDK)
+
+See [`examples/sap_aicore_bedrock.py`](examples/sap_aicore_bedrock.py) for a complete working example.
+
 ## Quick start
 
 Install the module:
